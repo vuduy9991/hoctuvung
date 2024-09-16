@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Từ Vựng</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #vocabulary-word {
+            font-size: 26px; /* Tăng kích thước từ vựng thêm khoảng 10% */
+            margin: 20px 0;
+            color: yellow;
+            border: 2px solid yellow;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        #answer-input {
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #check-btn, #hint-btn, #admin-btn, #save-btn, #delete-btn, #edit-btn, #close-admin-btn {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #333;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+        }
+        #delete-btn {
+            background-color: #c00;
+            border: 1px solid #a00;
+        }
+        #edit-btn {
+            background-color: #008cba;
+            border: 1px solid #007bb5;
+        }
+        #close-admin-btn {
+            background-color: #900;
+            border: 1px solid #600;
+        }
+        #result {
+            font-size: 20px;
+            margin: 10px;
+        }
+        #hint {
+            font-size: 20px;
+            color: green;
+            margin-top: 10px;
+            display: none; /* Ẩn gợi ý mặc định */
+        }
+        .completion-message {
+            color: yellow;
+            font-size: 24px;
+            margin: 20px;
+            font-weight: bold;
+        }
+        .footer {
+            font-weight: bold;
+            color: white;
+        }
+        #admin-panel {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+        #admin-panel input {
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #admin-panel select {
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #admin-panel textarea {
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px;
+            width: 100%;
+            height: 200px;
+        }
+        #admin-panel h2 {
+            margin-top: 0;
+        }
+        #login-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #login-panel input {
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #login-panel button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #333;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+        }
+        #admin-welcome {
+            color: green;
+            font-weight: bold;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        #login-error {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        #contact-info {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-panel">
+        <h1>Đăng Nhập Đã!!!</h1>
+        <input type="text" id="username" placeholder="Tên người dùng">
+        <input type="password" id="password" placeholder="Mật khẩu">
+        <button id="login-btn">Đăng Nhập</button>
+        <div id="login-error">Thông tin đăng nhập không chính xác!</div>
+        <div id="contact-info">
+    Có vẻ như bạn chưa có tài khoản nhỉ? Bạn hãy liên hệ <a href="https://www.facebook.com/duongduy.2021/" target="_blank" rel="noopener noreferrer">Dương Vũ Duy</a> để được cấp tài khoản
+</div>
+    </div>
+
+    <div id="main-content" style="display: none;">
+        <div id="admin-welcome"></div>
+        <h1>[+] Nếu Bạn Thấy Thiếu Hoặc Có Sai Sót Gì, Bạn Có Thể Mở Admin Panel Để Tùy Chỉnh</h1>
+        <div id="vocabulary-word"></div>
+        <input type="text" id="answer-input" placeholder="Nhập từ tiếng Anh...">
+        <button id="check-btn">Kiểm Tra</button>
+        <button id="hint-btn">Gợi Ý</button>
+        <button id="admin-btn">Admin</button>
+        <div id="result"></div>
+        <div id="hint"></div>
+        <div id="remaining-count">Số từ còn lại: </div> <!-- Thêm phần tử hiển thị số từ còn lại -->
+        <div class="completion-message" id="completion-message"></div>
+        <div id="admin-panel">
+            <button id="close-admin-btn">Đóng</button> <!-- Thêm nút đóng -->
+            <h2>Admin Panel</h2>
+            <input type="text" id="new-en-word" placeholder="Nhập từ tiếng Anh">
+            <input type="text" id="new-vi-word" placeholder="Nhập nghĩa tiếng Việt">
+            <button id="save-btn">Lưu</button>
+            <button id="edit-btn">Chỉnh Sửa</button>
+            <button id="delete-btn">Xóa</button>
+			<button id="reset-btn">Bắt Đầu Lại</button>
+
+            
+            <h3>Danh Sách Các Từ Vựng</h3>
+            <select id="word-list" size="10"></select>
+            <button id="show-remaining-btn">Xem Từ Còn Lại</button>
+            <div id="word-details"></div>
+        </div>
+        <div class="footer"><strong>Web được viết bởi Dương Vũ Duy</strong></div>
+    </div>
+
+    <script>
+        const correctUsername = 'duydv';
+        const correctPassword = '123123';
+        let failedAttempts = 0;
+
+        function authenticate() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (username === correctUsername && password === correctPassword) {
+                document.getElementById('login-panel').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('admin-welcome').textContent = 'Đăng Nhập Thành Công, Chào Mừng Bạn Đã Trở Lại';
+                getRandomWord(); // Get an initial random word
+            } else {
+                failedAttempts++;
+                if (failedAttempts >= 3) {
+                    document.getElementById('contact-info').style.display = 'block';
+                    document.getElementById('login-error').style.display = 'none';
+                } else {
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            }
+        }
+
+        document.getElementById('login-btn').addEventListener('click', authenticate);
+
+        let words = JSON.parse(localStorage.getItem('words')) || [
+            // Từ vựng mặc định
+            { en: "a teacher", vi: "giáo viên" },
+            { en: "a student", vi: "học sinh, sinh viên" },
+            { en: "an architect", vi: "kiến trúc sư" },
+            { en: "Occupation", vi: "nghề nghiệp" },
+            { en: "a teacher", vi: "giáo viên" },
+            { en: "a student", vi: "học sinh, sinh viên" },
+            { en: "an architect", vi: "kiến trúc sư" },
+            { en: "an actor", vi: "diễn viên" },
+            { en: "an athlete", vi: "vận động viên" },
+			{ en: "a musician", vi: "nhạc công" },
+			{ en: "an artist", vi: "họa sĩ" },
+			{ en: "a banker", vi: "giám đốc ngân hàng" },
+			{ en: "a singer", vi: "ca sĩ" },
+			{ en: "a flight attendant", vi: "tiếp viên hàng không" },
+			{ en: "an accountant", vi: "kế toán" },
+			{ en: "a bank teller", vi: "giao dịch viên ngân hàng" },
+			{ en: "an electrician", vi: "thợ điện" },
+			{ en: "a florist", vi: "người bán hoa" },
+			{ en: "a gardener", vi: "người làm vườn" },
+			{ en: "a grocery clerk", vi: "nhân viên bán tạp hóa" },
+			{ en: "a hairdresser", vi: "thợ làm tóc" },
+			{ en: "a mechanic", vi: "thợ máy" },
+			{ en: "a pharmacist", vi: "dược sĩ" },
+			{ en: "a professor", vi: "giáo sư, giảng viên đại học" },
+			{ en: "a reporter", vi: "phóng viên" },
+			{ en: "a salesperson", vi: "người bán hàng" },
+			{ en: "a travel agent", vi: "nhân viên đại lý du lịch" },
+			{ en: "a secretary", vi: "thư ký" },
+			{ en: "a waiter", vi: "bồi bàn" },
+			{ en: "a nurse", vi: "y tá" },
+			{ en: "a lawyer", vi: "luật sư" },
+			{ en: "a chef", vi: "đầu bếp" },
+			{ en: "a writer", vi: "nhà văn" },
+			{ en: "a manager", vi: "quản lý" },
+			{ en: "a scientist", vi: "nhà khoa học" },
+			{ en: "a doctor", vi: "bác sĩ" },
+			{ en: "an engineer", vi: "kỹ sư" },
+			{ en: "a photographer", vi: "nhiếp ảnh gia" },
+			{ en: "a pilot", vi: "phi công" },
+			{ en: "to spell", vi: "đánh vần" },
+			{ en: "the alphabet", vi: "bảng chữ cái" },
+			{ en: "famous", vi: "nổi tiếng" },
+			{ en: "to introduce", vi: "giới thiệu" },
+			{ en: "a relationship", vi: "mối quan hệ" },
+			{ en: "a classmate", vi: "bạn cùng lớp" },
+			{ en: "a friend", vi: "người bạn" },
+			{ en: "a neighbor", vi: "hàng xóm" },
+			{ en: "a boss", vi: "ông chủ" },
+			{ en: "a colleague", vi: "đồng nghiệp" },
+			{ en: "a supervisor", vi: "người giám sát" },
+			{ en: "an employee", vi: "người làm công" },
+			{ en: "a teammate", vi: "đồng đội" },
+			{ en: "first name", vi: "tên" },
+			{ en: "last name", vi: "họ" },
+			{ en: "contact information", vi: "thông tin liên lạc" },
+			{ en: "address", vi: "địa chỉ" },
+			{ en: "neighborhood", vi: "khu vực sống, khu dân cư" },
+			{ en: "a bank", vi: "ngân hàng" },
+			{ en: "a restaurant", vi: "nhà hàng" },
+			{ en: "a pharmacy", vi: "nhà thuốc" },
+			{ en: "a school", vi: "trường học" },
+			{ en: "a newsstand", vi: "sạp bán báo" },
+			{ en: "a bookstore", vi: "nhà sách" },
+			{ en: "a clothes store", vi: "cửa hàng bán quần áo" },
+			{ en: "an electronics store", vi: "cửa hàng bán đồ điện tử" },
+			{ en: "a fire station", vi: "trạm cứu hỏa" },
+			{ en: "a police station", vi: "đồn cảnh sát" },
+			{ en: "a shoe store", vi: "cửa hàng bán giầy" },
+			{ en: "a toy store", vi: "cửa hàng bán đồ chơi" },
+			{ en: "a dry cleaners", vi: "cửa hàng giặt ủi" },
+			{ en: "a gas station", vi: "trạm xăng" },
+			{ en: "a hotel", vi: "khách sạn" },
+			{ en: "a supermarket", vi: "siêu thị" },
+			{ en: "a convenience store", vi: "cửa hàng tiện lợi" },
+			{ en: "a travel agency", vi: "đại lý du lịch" },
+			{ en: "a post office", vi: "bưu điện" },
+			{ en: "a taxi stand", vi: "trạm taxi" },
+			{ en: "an office", vi: "văn phòng" },
+			{ en: "location", vi: "vị trí" },
+			{ en: "across the street", vi: "phía đối diện, bên kia đường" },
+			{ en: "down the street", vi: "phía dưới con đường" },
+			{ en: "around the corner", vi: "nơi góc đường" },
+			{ en: "on the left", vi: "ở bên trái" },
+			{ en: "on the right", vi: "ở bên phải" },
+			{ en: "next to", vi: "kế bên" },
+			{ en: "to walk", vi: "đi bộ" },
+			{ en: "to drive", vi: "lái xe" },
+			{ en: "to take a taxi", vi: "đón taxi" },
+			{ en: "to take the train", vi: "đi xe lửa" },
+			{ en: "to take the bus", vi: "đón xe buýt" },
+			{ en: "transportation", vi: "phương tiện giao thông" },
+			{ en: "a car", vi: "xe hơi" },
+			{ en: "a bicycle", vi: "xe đạp" },
+			{ en: "a moped", vi: "xe tay ga" },
+			{ en: "a subway", vi: "xe điện ngầm" },
+			{ en: "a motorcycle", vi: "xe mô-tô" },
+			{ en: "destination", vi: "nơi đến" },
+			{ en: "to go to work", vi: "đi làm" },
+			{ en: "to go home", vi: "đi về nhà" },
+			{ en: "to go to school", vi: "đi học" }
+        ];
+
+        let currentWord = null;
+
+        function getRandomWord() {
+            const unusedWords = words.filter(word => !word.used);
+            if (unusedWords.length === 0) {
+                document.getElementById('completion-message').textContent = 'Bạn đã hoàn thành tất cả các từ!';
+                document.getElementById('vocabulary-word').textContent = '';
+                document.getElementById('hint').style.display = 'none';
+                document.getElementById('remaining-count').textContent = 'Số từ còn lại: 0'; // Hiển thị số từ còn lại là 0
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * unusedWords.length);
+            currentWord = unusedWords[randomIndex];
+            document.getElementById('vocabulary-word').textContent = currentWord.vi; // Hiển thị nghĩa tiếng Việt
+            document.getElementById('hint').textContent = currentWord.en;
+            document.getElementById('hint').style.display = 'none';
+            document.getElementById('answer-input').value = '';
+            document.getElementById('result').textContent = '';
+            document.getElementById('remaining-count').textContent = `Số từ còn lại: ${unusedWords.length}`; // Cập nhật số từ còn lại
+        }
+
+        function updateWordList() {
+            const wordList = document.getElementById('word-list');
+            wordList.innerHTML = '';
+            words.forEach((word, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${word.en} - ${word.vi}`;
+                wordList.appendChild(option);
+            });
+        }
+
+        function updateWordDetails() {
+            const wordList = document.getElementById('word-list');
+            const selectedIndex = wordList.value;
+            if (selectedIndex !== '') {
+                const selectedWord = words[selectedIndex];
+                document.getElementById('new-en-word').value = selectedWord.en;
+                document.getElementById('new-vi-word').value = selectedWord.vi;
+            }
+        }
+
+        document.getElementById('check-btn').addEventListener('click', () => {
+            const userAnswer = document.getElementById('answer-input').value.trim();
+            if (!currentWord) {
+                alert('Vui lòng lấy một từ mới.');
+                return;
+            }
+            if (userAnswer.toLowerCase() === currentWord.en.toLowerCase()) {
+                document.getElementById('result').textContent = 'Đúng rồi!';
+                currentWord.used = true;
+                localStorage.setItem('words', JSON.stringify(words));
+                getRandomWord();
+            } else {
+                document.getElementById('result').textContent = 'Sai rồi. Hãy thử lại!';
+            }
+        });
+
+        document.getElementById('hint-btn').addEventListener('click', () => {
+            const hint = document.getElementById('hint');
+            hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('admin-btn').addEventListener('click', () => {
+            document.getElementById('admin-panel').style.display = 'block';
+            updateWordList();
+        });
+
+        document.getElementById('close-admin-btn').addEventListener('click', () => {
+            document.getElementById('admin-panel').style.display = 'none';
+        });
+
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const newEnWord = document.getElementById('new-en-word').value.trim();
+            const newViWord = document.getElementById('new-vi-word').value.trim();
+            if (newEnWord && newViWord) {
+                // Check for duplicate words
+                const isDuplicate = words.some(word => word.en.toLowerCase() === newEnWord.toLowerCase());
+                if (isDuplicate) {
+                    alert('Từ tiếng Anh này đã tồn tại trong danh sách!');
+                    return;
+                }
+                words.push({ en: newEnWord, vi: newViWord });
+                localStorage.setItem('words', JSON.stringify(words));
+                updateWordList();
+                document.getElementById('new-en-word').value = '';
+                document.getElementById('new-vi-word').value = '';
+                alert('Từ mới đã được thêm!');
+            } else {
+                alert('Vui lòng nhập đầy đủ thông tin.');
+            }
+        });
+
+        document.getElementById('delete-btn').addEventListener('click', () => {
+            const wordList = document.getElementById('word-list');
+            const selectedIndex = wordList.value;
+            if (selectedIndex === '') {
+                alert('Vui lòng chọn từ để xóa!');
+                return;
+            }
+
+            if (confirm('Bạn có chắc chắn muốn xóa từ này?')) {
+                words.splice(selectedIndex, 1);
+                localStorage.setItem('words', JSON.stringify(words));
+                updateWordList();
+                document.getElementById('word-details').textContent = '';
+                alert('Từ vựng đã được xóa!');
+                if (!currentWord) getRandomWord();
+            }
+        });
+
+        document.getElementById('edit-btn').addEventListener('click', () => {
+            const wordList = document.getElementById('word-list');
+            const selectedIndex = wordList.value;
+            if (selectedIndex === '') {
+                alert('Vui lòng chọn từ để chỉnh sửa!');
+                return;
+            }
+            const newEnWord = document.getElementById('new-en-word').value.trim();
+            const newViWord = document.getElementById('new-vi-word').value.trim();
+            if (newEnWord && newViWord) {
+                words[selectedIndex] = { en: newEnWord, vi: newViWord };
+                localStorage.setItem('words', JSON.stringify(words));
+                updateWordList();
+                document.getElementById('new-en-word').value = '';
+                document.getElementById('new-vi-word').value = '';
+                alert('Từ vựng đã được cập nhật!');
+            } else {
+                alert('Vui lòng nhập đầy đủ thông tin.');
+            }
+        });
+
+        document.getElementById('show-remaining-btn').addEventListener('click', () => {
+            const remainingWords = words.filter(word => !word.used);
+            document.getElementById('word-details').innerHTML = remainingWords.length ? remainingWords.map(word => `${word.en} - ${word.vi}`).join('<br>') : 'Không còn từ nào.';
+        });
+
+        document.getElementById('word-list').addEventListener('change', updateWordDetails);
+		
+		// Thêm hàm để nhấn nút "Kiểm Tra"
+function triggerCheck() {
+    document.getElementById('check-btn').click();
+}
+
+// Thêm sự kiện khi nhấn phím trong ô nhập câu trả lời
+document.getElementById('answer-input').addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Ngăn chặn hành động mặc định (như gửi biểu mẫu)
+        triggerCheck(); // Gọi hàm để nhấn nút "Kiểm Tra"
+    }
+});
+
+
+// Hàm để nhấn nút "Đăng Nhập"
+function triggerLogin() {
+    document.getElementById('login-btn').click();
+}
+
+// Thêm sự kiện khi nhấn phím trong ô nhập tên người dùng hoặc mật khẩu
+document.getElementById('username').addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Ngăn chặn hành động mặc định (như gửi biểu mẫu)
+        triggerLogin(); // Gọi hàm để nhấn nút "Đăng Nhập"
+    }
+});
+
+document.getElementById('password').addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Ngăn chặn hành động mặc định (như gửi biểu mẫu)
+        triggerLogin(); // Gọi hàm để nhấn nút "Đăng Nhập"
+    }
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Bạn có chắc chắn muốn bắt đầu lại?')) {
+        localStorage.removeItem('words');
+        words = [
+            { en: "a teacher", vi: "giáo viên" },
+            { en: "a student", vi: "học sinh, sinh viên" },
+            { en: "an architect", vi: "kiến trúc sư" },
+            { en: "Occupation", vi: "nghề nghiệp" },
+            { en: "a teacher", vi: "giáo viên" },
+            { en: "a student", vi: "học sinh, sinh viên" },
+            { en: "an architect", vi: "kiến trúc sư" },
+            { en: "an actor", vi: "diễn viên" },
+            { en: "an athlete", vi: "vận động viên" },
+			{ en: "a musician", vi: "nhạc công" },
+			{ en: "an artist", vi: "họa sĩ" },
+			{ en: "a banker", vi: "giám đốc ngân hàng" },
+			{ en: "a singer", vi: "ca sĩ" },
+			{ en: "a flight attendant", vi: "tiếp viên hàng không" },
+			{ en: "an accountant", vi: "kế toán" },
+			{ en: "a bank teller", vi: "giao dịch viên ngân hàng" },
+			{ en: "an electrician", vi: "thợ điện" },
+			{ en: "a florist", vi: "người bán hoa" },
+			{ en: "a gardener", vi: "người làm vườn" },
+			{ en: "a grocery clerk", vi: "nhân viên bán tạp hóa" },
+			{ en: "a hairdresser", vi: "thợ làm tóc" },
+			{ en: "a mechanic", vi: "thợ máy" },
+			{ en: "a pharmacist", vi: "dược sĩ" },
+			{ en: "a professor", vi: "giáo sư, giảng viên đại học" },
+			{ en: "a reporter", vi: "phóng viên" },
+			{ en: "a salesperson", vi: "người bán hàng" },	
+			{ en: "a travel agent", vi: "nhân viên đại lý du lịch" },
+			{ en: "a secretary", vi: "thư ký" },
+			{ en: "a waiter", vi: "bồi bàn" },
+			{ en: "a nurse", vi: "y tá" },
+			{ en: "a lawyer", vi: "luật sư" },
+			{ en: "a chef", vi: "đầu bếp" },
+			{ en: "a writer", vi: "nhà văn" },
+			{ en: "a manager", vi: "quản lý" },
+			{ en: "a scientist", vi: "nhà khoa học" },
+			{ en: "a doctor", vi: "bác sĩ" },
+			{ en: "an engineer", vi: "kỹ sư" },
+			{ en: "a photographer", vi: "nhiếp ảnh gia" },
+			{ en: "a pilot", vi: "phi công" },
+			{ en: "to spell", vi: "đánh vần" },
+			{ en: "the alphabet", vi: "bảng chữ cái" },
+			{ en: "famous", vi: "nổi tiếng" },
+			{ en: "to introduce", vi: "giới thiệu" },
+			{ en: "a relationship", vi: "mối quan hệ" },
+			{ en: "a classmate", vi: "bạn cùng lớp" },
+			{ en: "a friend", vi: "người bạn" },
+			{ en: "a neighbor", vi: "hàng xóm" },
+			{ en: "a boss", vi: "ông chủ" },
+			{ en: "a colleague", vi: "đồng nghiệp" },
+			{ en: "a supervisor", vi: "người giám sát" },
+			{ en: "an employee", vi: "người làm công" },
+			{ en: "a teammate", vi: "đồng đội" },
+			{ en: "first name", vi: "tên" },
+			{ en: "last name", vi: "họ" },
+			{ en: "contact information", vi: "thông tin liên lạc" },
+			{ en: "address", vi: "địa chỉ" },
+			{ en: "neighborhood", vi: "khu vực sống, khu dân cư" },
+			{ en: "a bank", vi: "ngân hàng" },
+			{ en: "a restaurant", vi: "nhà hàng" },
+			{ en: "a pharmacy", vi: "nhà thuốc" },
+			{ en: "a school", vi: "trường học" },
+			{ en: "a newsstand", vi: "sạp bán báo" },
+			{ en: "a bookstore", vi: "nhà sách" },
+			{ en: "a clothes store", vi: "cửa hàng bán quần áo" },
+			{ en: "an electronics store", vi: "cửa hàng bán đồ điện tử" },
+			{ en: "a fire station", vi: "trạm cứu hỏa" },
+			{ en: "a police station", vi: "đồn cảnh sát" },
+			{ en: "a shoe store", vi: "cửa hàng bán giầy" },
+			{ en: "a toy store", vi: "cửa hàng bán đồ chơi" },
+			{ en: "a dry cleaners", vi: "cửa hàng giặt ủi" },
+			{ en: "a gas station", vi: "trạm xăng" },
+			{ en: "a hotel", vi: "khách sạn" },
+			{ en: "a supermarket", vi: "siêu thị" },
+			{ en: "a convenience store", vi: "cửa hàng tiện lợi" },
+			{ en: "a travel agency", vi: "đại lý du lịch" },
+			{ en: "a post office", vi: "bưu điện" },
+			{ en: "a taxi stand", vi: "trạm taxi" },
+			{ en: "an office", vi: "văn phòng" },
+			{ en: "location", vi: "vị trí" },
+			{ en: "across the street", vi: "phía đối diện, bên kia đường" },
+			{ en: "down the street", vi: "phía dưới con đường" },
+			{ en: "around the corner", vi: "nơi góc đường" },
+			{ en: "on the left", vi: "ở bên trái" },
+			{ en: "on the right", vi: "ở bên phải" },
+			{ en: "next to", vi: "kế bên" },
+			{ en: "to walk", vi: "đi bộ" },
+			{ en: "to drive", vi: "lái xe" },
+			{ en: "to take a taxi", vi: "đón taxi" },
+			{ en: "to take the train", vi: "đi xe lửa" },
+			{ en: "to take the bus", vi: "đón xe buýt" },
+			{ en: "transportation", vi: "phương tiện giao thông" },
+			{ en: "a car", vi: "xe hơi" },
+			{ en: "a bicycle", vi: "xe đạp" },
+			{ en: "a moped", vi: "xe tay ga" },
+			{ en: "a subway", vi: "xe điện ngầm" },
+			{ en: "a motorcycle", vi: "xe mô-tô" },
+			{ en: "destination", vi: "nơi đến" },
+			{ en: "to go to work", vi: "đi làm" },
+			{ en: "to go home", vi: "đi về nhà" },
+			{ en: "to go to school", vi: "đi học" }
+            // Thêm các từ vựng khác ở đây
+        ];
+        localStorage.setItem('words', JSON.stringify(words));
+        getRandomWord();
+        alert('Từ vựng đã được đặt lại! Bạn có thể bắt đầu lại bài kiểm tra.');
+    }
+});
+
+
+    </script>
+</body>
+</html>
